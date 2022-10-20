@@ -25,7 +25,9 @@ def main():
             MessageHandler(Filters.regex('^(Проблема с товаром)$'), problem_start)
         ],
         states={
-            'problem_type': [MessageHandler(Filters.text, problem_type)],
+            'problem_type': [
+                MessageHandler(Filters.text, problem_type)
+            ],
             'problem_details': [MessageHandler(Filters.text, problem_details)],
             'get_details': [CommandHandler('skip', skip_details),
                             MessageHandler(Filters.text, get_details)],

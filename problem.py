@@ -8,13 +8,9 @@ from settings import PRODUCT_ARTICULS
 
 def problem_start(update, context):
     print('problem_start')
+    if not context.user_data.get('username'):
+        update.message.reply_text('Печаль...', reply_markup=ReplyKeyboardRemove())
     context.user_data['username'] = update.message.chat.username
-    update.message.reply_text('Печаль...', reply_markup=ReplyKeyboardRemove())
-    choose_product(update, context)
-    return 'problem_type'
-
-
-def choose_product(update, context):
     reply_keyboard = [
         ['Мягкая коробка\n(98484896)', 'Жесткая коробка\n(98917907)'],
         ['Полужесткая белая\n(98915200)', 'Полужесткая серая\n(98915552)'],
@@ -23,21 +19,22 @@ def choose_product(update, context):
     update.message.reply_text('Укажите артикул товара, по которому хотите оставить обращение',
                                 reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
     )
+    return 'problem_type'
 
 
 def problem_type(update, context):
     print('problem_type')
     text = update.message.text
     print(text)
+    if text == 'Пример':
+        get_articul_example(update, context)
     try:
         subtext = re.search(r'[a-zA-Z0-9]{6,}', text)[0]
     except:
         subtext = 'unknown'
     print(subtext)
     if not subtext in PRODUCT_ARTICULS:
-        get_articul_example(update, context)
-        choose_product(update, context)
-        return 'problem_type'
+        help_find_articul(update, context)
     context.user_data['problem'] = {}
     context.user_data['problem']['product_type'] = update.message.text
     reply_keyboard = [['Товар с браком'], ['Товар не соответствует заказу'], ['Другое']]
@@ -47,13 +44,25 @@ def problem_type(update, context):
     return 'problem_details'
 
 
+def help_find_articul(update, context):
+    print('help_find_articul')
+    reply_keyboard = [
+        ['Пример', 'Вернуться к списку товаров'],
+        ['Оставить обрадение без указания артикула']
+    ]
+    update.message.reply_text(
+        'Вы можете посмотреть артикул товара на вкладке заказы своего личного кабинета, либо на странице товара.', 
+        reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+    )
+    return 'problem_type'
+
+
 def get_articul_example(update, context):
     print('get_articul_example')
-    update.message.reply_text('Вы можете посмотреть артикул товара на вкладке заказы своего личного кабинета, либо на странице товара.')
     chat_id = update.effective_chat.id
     articul_pic_filename = 'images/help_to_find_articul.jpg'
     context.bot.send_photo(chat_id=chat_id, photo=open(articul_pic_filename, 'rb'), reply_markup=main_keyboard())
-
+    return 'help_find_articul'
 
 def problem_details(update, context):
     print('problem_details')
