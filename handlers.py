@@ -18,3 +18,4 @@ def get_user_photo(update, context):
     file_name = os.path.join('downloads', f'{update.message.photo[-1].file_id}.jpg')
     photo_file.download(file_name)
     update.message.reply_text('Фото сохранено')
+    return file_name
