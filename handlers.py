@@ -1,5 +1,4 @@
-import os
-from utils import main_keyboard
+from utils import main_keyboard, submit_inline_keyboard
 from db import db, get_or_create_user
 
 
@@ -17,17 +16,16 @@ def talk_to_me(update, context):
     update.message.reply_text(text, reply_markup=main_keyboard())
 
 
+def simple_handler(update, context):
+    chat_id = update.effective_chat.id
+    articul_pic_filename = 'images/help_to_find_articul.jpg'
+    context.bot.send_photo(
+        chat_id=chat_id, photo=open(articul_pic_filename, 'rb'), reply_markup=submit_inline_keyboard()
+    )
+
 def submit_submit(update, context):
+    print('submit_submit')
     update.callback_query.answer()
-    text = f"Спасибо, за ваше обращение! {update.callback_query.data}"
+    print(update)
+    text = f"Спасибо, за ваше обращение! Nice {update.callback_query.data}"
     update.callback_query.edit_message_caption(caption=text)
-
-
-def get_user_photo(update, context):
-    update.message.reply_text('Обрабатываем фото')
-    os.makedirs('downloads', exist_ok=True)
-    photo_file = context.bot.getFile(update.message.photo[-1].file_id)
-    file_name = os.path.join('downloads', f'{update.message.photo[-1].file_id}.jpg')
-    photo_file.download(file_name)
-    update.message.reply_text('Фото сохранено')
-    return file_name

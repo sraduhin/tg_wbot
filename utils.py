@@ -1,5 +1,6 @@
+import os
 import re
-from telegram import ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 
 
 def main_keyboard():
@@ -8,7 +9,7 @@ def main_keyboard():
         ['Проблема с товаром'],
         ['Хочу картинку с котиком'],
         ['Другое']
-    ])
+    ], one_time_keyboard=True)
 
 
 def submit_inline_keyboard():
@@ -20,15 +21,13 @@ def submit_inline_keyboard():
     return InlineKeyboardMarkup(keyboard)
 
 
-def choose_product(update, context):
-    reply_keyboard = [
-        ['Мягкая коробка\n(98484896)', 'Жесткая коробка\n(98917907)'],
-        ['Полужесткая белая\n(98915200)', 'Полужесткая серая\n(98915552)'],
-        ['Помощь. Где узнать артикул?']
-    ]
-    update.message.reply_text('Укажите артикул товара, по которому хотите оставить обращение',
-                                reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
-    )
+def show_choice_and_get_answer(update, context):
+    update.callback_query.answer()
+    answer = update.callback_query.data
+    text = f"<b>Ваш выбор</b>: {answer}"
+    update.callback_query.edit_message_reply_markup(reply_markup=None)
+    context.bot.send_message(chat_id=update.effective_chat.id, text=text, parse_mode=ParseMode.HTML)
+    return answer
 
 
 def get_photos_count(data):
@@ -62,3 +61,13 @@ def format_respect(respect):
         print(respect)
         respect_content += f"\nТак же есть {get_photos_count(respect)} фото"
     return respect_content
+
+
+def get_user_photo(update, context):
+    update.message.reply_text('Обрабатываем фото')
+    os.makedirs('downloads', exist_ok=True)
+    photo_file = context.bot.getFile(update.message.photo[-1].file_id)
+    file_name = os.path.join('downloads', f'{update.message.photo[-1].file_id}.jpg')
+    photo_file.download(file_name)
+    update.message.reply_text('Фото сохранено')
+    return file_name
