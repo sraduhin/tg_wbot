@@ -1,7 +1,7 @@
 from db import db, get_or_create_user, save_problem
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from telegram.ext import ConversationHandler
-from utils import show_choice_and_get_answer, format_problem, main_keyboard, submit_inline_keyboard, get_user_photo
+from utils import show_choice_and_get_answer, format_problem, main_keyboard, get_user_photo
 from products import PRODUCTS
 
 
@@ -34,6 +34,8 @@ def product_type(update, context):
 
 
 def skip_product(update, context):
+    update.callback_query.answer()
+    context.user_data['problem']['product_type'] = 'Не указано'
     update.message.reply_text(
         'Вы можете описать проблему, приложить фото, либо пропустить этот шаг, нажав /skip'  # Noqa: E501
     )
@@ -98,12 +100,6 @@ def ask_before_send(update, context):
                              reply_markup=InlineKeyboardMarkup(keyboard), 
                              parse_mode=ParseMode.HTML)
     return 'get_description'
-
-
-def submit_submit(update, context):
-    update.callback_query.answer()
-    text = f"Спасибо, за ваше обращение! {update.callback_query.data}"
-    update.callback_query.edit_message_caption(caption=text)
 
 
 def get_description(update, context):

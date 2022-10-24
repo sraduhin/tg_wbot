@@ -30,10 +30,10 @@ def main():
         ],
         states={
             'product_type': [
+                CallbackQueryHandler(problems.get_articul_example, pattern='^' + 'EXAMPLE' + '$'),
                 CallbackQueryHandler(problems.product_type, pattern='^' + '[a-zA-Z0-9]{6,}' + '$'),
                 CallbackQueryHandler(problems.help_find_articul, pattern='^' + 'HELP_TO_FIND_ARTICUL' + '$'),
-                CallbackQueryHandler(problems.get_articul_example, pattern='^' + 'EXAMPLE' + '$'),
-                CallbackQueryHandler(problems.skip_product, pattern='^' + 'Оставить обращение без указания артикула' + '$'),
+                CallbackQueryHandler(problems.product_type, pattern='^' + 'Без артикула' + '$'),
                 #MessageHandler(Filters.text, problems.product_type)
             ],
             'problem_type': [CallbackQueryHandler(problems.problem_type)],

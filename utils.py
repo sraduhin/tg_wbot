@@ -24,6 +24,8 @@ def submit_inline_keyboard():
 def show_choice_and_get_answer(update, context):
     update.callback_query.answer()
     answer = update.callback_query.data
+    if answer == 'Без артикула':
+        return answer
     text = f"<b>Вы указали</b>: {answer}"
     update.callback_query.edit_message_reply_markup(reply_markup=None)
     context.bot.send_message(chat_id=update.effective_chat.id, text=text, parse_mode=ParseMode.HTML)
