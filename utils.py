@@ -1,5 +1,5 @@
 import re
-from telegram import ReplyKeyboardMarkup
+from telegram import ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 
 
 def main_keyboard():
@@ -11,8 +11,13 @@ def main_keyboard():
     ])
 
 
-def get_articul(text):
-    return re.search(r'[a-zA-Z0-9]{6,}', text)[0]
+def submit_inline_keyboard():
+    keyboard = [
+        [
+            InlineKeyboardButton('Отправить', callback_data='True')
+        ]
+    ]
+    return InlineKeyboardMarkup(keyboard)
 
 
 def choose_product(update, context):
@@ -44,3 +49,16 @@ def format_problem(problem):
         print(problem)
         problem_content += f"\nТак же есть {get_photos_count(problem)} фото"
     return problem_content
+
+
+def format_respect(respect):
+    print('format_respect')
+    respect_content = f"""<b>Имя</b>: {respect['problem_kind']}"""
+    if 'product_type' in respect:
+        respect_content = f"<b>Товар</b>: Коробка {respect['product_type']}\n" + respect_content
+    if 'details' in respect:
+        respect_content += f"\n<b>Комментарий</b>: {respect['details']}"
+    if 'photos' in respect:
+        print(respect)
+        respect_content += f"\nТак же есть {get_photos_count(respect)} фото"
+    return respect_content

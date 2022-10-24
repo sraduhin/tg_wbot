@@ -1,6 +1,8 @@
 APScheduler==3.6.3
 cachetools==4.2.2
 certifi==2022.9.24
+dnspython==2.2.1
+pymongo==4.3.2
 PySocks==1.7.1
 python-telegram-bot==13.14
 pytz==2022.4

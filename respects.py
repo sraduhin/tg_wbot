@@ -1,6 +1,7 @@
-from random import choice
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import ConversationHandler
+from handlers import get_user_photo
+
 
 def thanks_start(update, context):
     print('thanks_start')
@@ -20,7 +21,7 @@ def get_photo(update, context):
 
 
 def ask_before_send(update, context):
-    problem_content = format_problem(context.user_data['problem'])
+    respect_content = format_problem(context.user_data['problem'])
     reply_keyboard = [['Отправляем!']]
     update.message.reply_text(
         problem_content,
@@ -40,13 +41,14 @@ def skip_details(update, context):
     ask_before_send(update, context)
     return 'end_conversation'
 
+
 def new_comment(update, context):
     print('new_comment')
     context.user_data['problem']['details'] += f'\n{update.message.text}'
     ask_before_send(update, context)
     return 'end_conversation'
-    
-    
+
+
 def end_conversation(update, context):
     print('end_conversation')
     update.message.reply_text('Спасибо, за ваше обращение', reply_markup=main_keyboard())
