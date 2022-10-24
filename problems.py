@@ -8,13 +8,12 @@ from products import PRODUCTS
 def problem_start(update, context):
     print('problem_start')
     user = get_or_create_user(db, update.effective_user, update.message.chat.id)
-    print(update.message.chat.id)
     context.bot.send_message(chat_id=update.effective_chat.id, text='Печаль...',)
     context.user_data['username'] = update.message.chat.username
     keyboard = [
         [InlineKeyboardButton(f"{product['name']}. {product['wb_articul']}", callback_data=product['wb_articul'])] for product in PRODUCTS
     ]
-    keyboard.append([InlineKeyboardButton('Помощь. Где узнать артикул?', callback_data='where')])
+    keyboard.append([InlineKeyboardButton('Помощь. Где узнать артикул?', callback_data='HELP_TO_FIND_ARTICUL')])
     context.bot.send_message(chat_id=update.effective_chat.id, text='Укажите артикул товара, по которому хотите оставить обращение',
                             reply_markup=InlineKeyboardMarkup(keyboard))
     return 'product_type'
@@ -44,13 +43,15 @@ def skip_product(update, context):
 
 def help_find_articul(update, context):
     print('help_find_articul')
-    reply_keyboard = [
-        ['Пример', 'Вернуться к списку товаров'],
-        ['Оставить обращение без указания артикула']
+    update.callback_query.answer()
+    keyboard = [
+        [InlineKeyboardButton('Пример', callback_data='EXAMPLE')],
+        [InlineKeyboardButton('Оставить обращение без указания артикула', callback_data='Без артикула')],
     ]
-    update.message.reply_text(
-        'Вы можете посмотреть артикул товара на вкладке заказы своего личного кабинета, либо на странице товара.',  # Noqa: E501
-        reply_markup=ReplyKeyboardMarkup(reply_keyboard)
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text='Вы можете посмотреть артикул товара на вкладке заказы своего личного кабинета, либо на странице товара.',
+        reply_markup=InlineKeyboardMarkup(keyboard)
     )
     return 'product_type'
 
@@ -79,8 +80,11 @@ def get_photo(update, context):
     context.user_data['problem']['photos'].append(
         get_user_photo(update, context)
     )
-    
-    context.user_data['problem']['details'] += f'\n{update.message.text}'
+    print(update)
+    if context.user_data['problem'].get('details'):
+        context.user_data['problem']['details'] += f'\n{update.message.caption}'
+    else:
+        context.user_data['problem']['details'] = update.message.caption
     ask_before_send(update, context)
     return 'get_description'
 
@@ -91,10 +95,10 @@ def ask_before_send(update, context):
         [InlineKeyboardButton('Отправить', callback_data='SEND_CONVERSATION')]
     ]
     context.bot.send_message(chat_id=update.effective_chat.id, text=problem_content,
-                            reply_markup=InlineKeyboardMarkup(keyboard), 
-                            parse_mode=ParseMode.HTML)
+                             reply_markup=InlineKeyboardMarkup(keyboard), 
+                             parse_mode=ParseMode.HTML)
     return 'get_description'
-    
+
 
 def submit_submit(update, context):
     update.callback_query.answer()
@@ -116,8 +120,8 @@ def skip_details(update, context):
     print('skip_details')
     user = get_or_create_user(db, update.effective_user, update.message.chat.id)
     save_problem(db, user['user_id'], context.user_data['problem'])
-    update.message.reply_text('Спасибо, за ваше обращение',
-                              reply_markup=main_keyboard())
+    context.bot.send_message(chat_id=update.effective_chat.id, text='Спасибо, за ваше обращение!',
+                             reply_markup=main_keyboard())
     return ConversationHandler.END
 
 
@@ -131,5 +135,5 @@ def end_conversation(update, context):
     )
     save_problem(db, user['user_id'], context.user_data['problem'])
     context.bot.send_message(chat_id=update.effective_chat.id, text='Спасибо, за ваше обращение!',
-                              reply_markup=main_keyboard())
+                             reply_markup=main_keyboard())
     return ConversationHandler.END

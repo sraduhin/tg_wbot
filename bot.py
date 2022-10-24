@@ -31,11 +31,10 @@ def main():
         states={
             'product_type': [
                 CallbackQueryHandler(problems.product_type, pattern='^' + '[a-zA-Z0-9]{6,}' + '$'),
-                MessageHandler(Filters.regex('^(Пример)$'), problems.get_articul_example),
-                MessageHandler(Filters.regex('^(Помощь. Где узнать артикул)\?$'), problems.help_find_articul),
-                #MessageHandler(Filters.regex('^(Вернуться к списку товаров)$'), problems.repeat_choice),
-                MessageHandler(Filters.regex('^(Оставить обращение без указания артикула)$'), problems.skip_product),
-                MessageHandler(Filters.text, problems.product_type)
+                CallbackQueryHandler(problems.help_find_articul, pattern='^' + 'HELP_TO_FIND_ARTICUL' + '$'),
+                CallbackQueryHandler(problems.get_articul_example, pattern='^' + 'EXAMPLE' + '$'),
+                CallbackQueryHandler(problems.skip_product, pattern='^' + 'Оставить обращение без указания артикула' + '$'),
+                #MessageHandler(Filters.text, problems.product_type)
             ],
             'problem_type': [CallbackQueryHandler(problems.problem_type)],
             'get_description': [
