@@ -1,6 +1,26 @@
-from utils import main_keyboard, submit_inline_keyboard
-from db import db, get_or_create_user
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from utils import main_keyboard
+from db import db, get_or_create_user, get_problems
 
+
+def admin(update, context):
+    print('admin')
+    user = get_or_create_user(
+        db, update.effective_user,
+        update.message.chat.id
+    )
+    print(user)
+    if user.get('admin') is True:
+        request = get_problems(db)
+        keyboard = [
+            [InlineKeyboardButton(f"{issue['username']}\n{issue['problem'].get('problem_kind')}", callback_data='_')] for issue in request
+        ]
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"Привет {user['first_name']}! У тебя активные обращения",
+            reply_markup=InlineKeyboardMarkup(keyboard))
+    else:
+        context.bot.send_photo(chat_id=update.effective_chat.id, photo=open('images/not_admin.jpg', 'rb'))
 
 def greet_user(update, context):
     user = get_or_create_user(
@@ -14,18 +34,3 @@ def talk_to_me(update, context):
     text = update.message.text
     text = f'{(text).capitalize()}'
     update.message.reply_text(text, reply_markup=main_keyboard())
-
-
-def simple_handler(update, context):
-    chat_id = update.effective_chat.id
-    articul_pic_filename = 'images/help_to_find_articul.jpg'
-    context.bot.send_photo(
-        chat_id=chat_id, photo=open(articul_pic_filename, 'rb'), reply_markup=submit_inline_keyboard()
-    )
-
-def submit_submit(update, context):
-    print('submit_submit')
-    update.callback_query.answer()
-    print(update)
-    text = f"Спасибо, за ваше обращение! Nice {update.callback_query.data}"
-    update.callback_query.edit_message_caption(caption=text)

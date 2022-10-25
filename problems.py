@@ -9,7 +9,9 @@ def problem_start(update, context):
     print('problem_start')
     user = get_or_create_user(db, update.effective_user, update.message.chat.id)
     context.bot.send_message(chat_id=update.effective_chat.id, text='Печаль...',)
+    context.bot.send_message(chat_id=update.effective_chat.id, text='Заполните анкету. Для сброса наберите команду /cancel',)
     context.user_data['username'] = update.message.chat.username
+    context.user_data['problem'] = {}
     keyboard = [
         [InlineKeyboardButton(f"{product['name']}. {product['wb_articul']}", callback_data=product['wb_articul'])] for product in PRODUCTS
     ]
@@ -21,7 +23,7 @@ def problem_start(update, context):
 
 def product_type(update, context):
     print('product_type')
-    context.user_data['problem'] = {}
+    # remove_product_keyboard(update, context)
     context.user_data['problem']['product_type'] = show_choice_and_get_answer(update, context)
     keyboard = [
         [InlineKeyboardButton('Товар с браком', callback_data='Товар с браком')],
@@ -33,19 +35,10 @@ def product_type(update, context):
     return 'problem_type'
 
 
-def skip_product(update, context):
-    update.callback_query.answer()
-    context.user_data['problem']['product_type'] = 'Не указано'
-    update.message.reply_text(
-        'Вы можете описать проблему, приложить фото, либо пропустить этот шаг, нажав /skip'  # Noqa: E501
-    )
-    context.user_data['problem'] = {}
-    return 'get_details'
-
-
 def help_find_articul(update, context):
     print('help_find_articul')
     update.callback_query.answer()
+    # save_message_id(update, context)
     keyboard = [
         [InlineKeyboardButton('Пример', callback_data='EXAMPLE')],
         [InlineKeyboardButton('Оставить обращение без указания артикула', callback_data='Без артикула')],
@@ -133,3 +126,4 @@ def end_conversation(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text='Спасибо, за ваше обращение!',
                              reply_markup=main_keyboard())
     return ConversationHandler.END
+

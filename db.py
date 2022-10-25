@@ -18,13 +18,36 @@ def get_or_create_user(db, effective_user, chat_id):
             "username": effective_user.username,
             "chat_id": chat_id
         }
+        if user['username'] in settings.ADMINS_USERNAMES:
+            user['admin'] = True
         db.users.insert_one(user)
+    if user['username'] in settings.ADMINS_USERNAMES:
+        db.users.update_one(
+            {'_id': user['_id']},
+            {'$set': {'admin': True}}
+        )
     return user
+
+
+def get_problems(db):
+    result = db.problems.find( {'status_open': True } )
+    return result
 
 
 def save_problem(db, user_id, problem_data):
     user = db.users.find_one({"user_id": user_id})
+    problem = {
+        'user_id': user_id,
+        'username': user['username'],
+        'problem': problem_data,
+        'status_open': True
+    }
+    db.problems.insert_one(problem)
+
+'''def save_problem(db, user_id, problem_data):
+    user = db.users.find_one({"user_id": user_id})
     problem_data['created'] = datetime.now()
+    problem_data['status'] = 'open'
     if 'problem' not in user:
         db.users.update_one(
             {'_id': user['_id']},
@@ -34,4 +57,5 @@ def save_problem(db, user_id, problem_data):
         db.users.update_one(
             {'_id': user['_id']},
             {'$push': {'problem': problem_data}}
-        )
+        )'''
+
