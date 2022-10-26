@@ -1,5 +1,6 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from utils import main_keyboard, get_feedback_type
+from bson import ObjectId
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
+from utils import format_feedback, main_keyboard, get_feedback_type
 from db import db, get_or_create_user
 
 
@@ -31,11 +32,15 @@ def admin(update, context):
 
 def show_feedback(update, context):
     answer = update.callback_query.data
-    print(answer)
     answer = answer.split('|')[-1]
-    print(answer)
-    feedback = db.feedbacks.find_one({"_id": answer})
-    print(feedback)
+    feedback = db.feedbacks.find_one({"_id": ObjectId(answer)})
+    photos = feedback['feedback'].get('photos')
+    feedback = format_feedback(feedback)
+    context.bot.send_message(chat_id=update.effective_chat.id, text=feedback,
+                             parse_mode=ParseMode.HTML)
+    if photos:
+        for photo in photos:
+            context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(photo, 'rb'))
 
 
 def greet_user(update, context):
@@ -48,5 +53,4 @@ def greet_user(update, context):
 
 def talk_to_me(update, context):
     text = update.message.text
-    text = f'{(text).capitalize()}'
     update.message.reply_text(text, reply_markup=main_keyboard())

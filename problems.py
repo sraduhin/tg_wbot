@@ -71,17 +71,18 @@ def problem_type(update, context):
 
 def get_photo(update, context):
     print('get_photo')
-    if 'photo' not in context.user_data['data']:
+    if 'photos' not in context.user_data['data']:
         context.user_data['data']['photos'] = []
     context.user_data['data']['photos'].append(
         get_user_photo(update, context)
     )
     print(update)
-    if context.user_data['data'].get('details'):
-        context.user_data['data']['details'] += f'\n{update.message.caption}'
-    else:
-        context.user_data['data']['details'] = update.message.caption
-    ask_before_send(update, context)
+    if update.message.caption:
+        if context.user_data['data'].get('details'):
+            context.user_data['data']['details'] += f'\n{update.message.caption}'
+        else:
+            context.user_data['data']['details'] = update.message.caption
+        ask_before_send(update, context)
     return 'get_description'
 
 
@@ -93,6 +94,10 @@ def ask_before_send(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text=problem_content,
                              reply_markup=InlineKeyboardMarkup(keyboard), 
                              parse_mode=ParseMode.HTML)
+    if not context.user_data.get('username'):
+        warning = """Мы заметили, что у вас не указано имя пользователя в настройках телеграмм.
+Возможно, для решения проблемы нам потребуется связаться с вами для уточнения деталей. Вы можете оставить добавить к описанию ваш контактный номер, либо приложить фото с qr. Спасибо!"""
+        context.bot.send_message(chat_id=update.effective_chat.id, text=warning)
     return 'get_description'
 
 

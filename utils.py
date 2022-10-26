@@ -66,13 +66,23 @@ def format_issue(issue):
     return issue_content
 
 
+def format_feedback(feedback):
+    formated_feedback = f"""<b>{feedback['feedback']['type']}</b>:
+<b>Создано</b>: {feedback['created']}"""
+    if 'username' in feedback:
+        formated_feedback += f"\n<b>Пользователь</b>: @{feedback['username']}"
+    if 'problem_kind' in feedback['feedback']:
+        formated_feedback += f"\n<b>Причина</b>: {feedback['feedback']['problem_kind']}"
+    if 'details' in feedback['feedback']:
+        formated_feedback += f"\n<b>Комментарий</b>: {feedback['feedback']['details']}"
+    return formated_feedback
+
+
 def get_user_photo(update, context):
-    update.message.reply_text('Обрабатываем фото')
     os.makedirs('downloads', exist_ok=True)
     photo_file = context.bot.getFile(update.message.photo[-1].file_id)
     file_name = os.path.join('downloads', f'{update.message.photo[-1].file_id}.jpg')
     photo_file.download(file_name)
-    update.message.reply_text('Фото сохранено')
     return file_name
 
 
@@ -89,3 +99,4 @@ def get_feedback_type(request_result):
                 }
             )
     return result
+    

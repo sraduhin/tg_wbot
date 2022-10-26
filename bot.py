@@ -18,8 +18,8 @@ def main():
 
     db = mybot.dispatcher
 
-    db.add_handler(CommandHandler('start', greet_user))
     db.add_handler(CommandHandler('admin', admin))
+    db.add_handler(CommandHandler('start', greet_user))
     problem = ConversationHandler(
         entry_points=[
             MessageHandler(Filters.regex('^(Проблема с товаром)$'), problems.problem_start)
@@ -36,7 +36,7 @@ def main():
             'get_description': [
                 CallbackQueryHandler(problems.end_conversation),
                 CommandHandler('skip', problems.skip_details),
-                MessageHandler(Filters.text, problems.get_description),
+                MessageHandler(Filters.text & ~Filters.regex('^[^/]'), problems.get_description),
                 MessageHandler(Filters.photo, problems.get_photo)
             ]
         },
@@ -53,8 +53,8 @@ def main():
         states={
             'get_description': [
                 CallbackQueryHandler(issues.end_conversation),
-                MessageHandler(Filters.text, issues.get_description),
-                MessageHandler(Filters.photo, issues.get_photo)
+                MessageHandler(Filters.text & ~Filters.regex('^[^/]'), problems.get_description),
+                MessageHandler(Filters.photo, problems.get_photo)
             ]
         },
         fallbacks=[

@@ -1,7 +1,7 @@
 from db import db, get_or_create_user, save_feedback
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from telegram.ext import ConversationHandler
-from utils import get_user_photo, format_issue, main_keyboard
+from utils import format_issue, main_keyboard
 
 
 def issue_start(update, context):
@@ -25,22 +25,6 @@ def issue_start(update, context):
     return 'get_description'
 
 
-def get_photo(update, context):
-    print('get_photo')
-    if 'photo' not in context.user_data['data']:
-        context.user_data['data']['photos'] = []
-    context.user_data['data']['photos'].append(
-        get_user_photo(update, context)
-    )
-    print(update)
-    if context.user_data['data'].get('details'):
-        context.user_data['data']['details'] += f'\n{update.message.caption}'
-    else:
-        context.user_data['data']['details'] = update.message.caption
-    ask_before_send(update, context)
-    return 'get_description'
-
-
 def ask_before_send(update, context):
     issue_content = format_issue(context.user_data)
     keyboard = [
@@ -50,16 +34,6 @@ def ask_before_send(update, context):
                              reply_markup=InlineKeyboardMarkup(keyboard), 
                              parse_mode=ParseMode.HTML)
     return 'get_description'
-
-
-def get_description(update, context):
-    print('get_description')
-    print(context.user_data['data'])
-    if context.user_data['data'].get('details'):
-        context.user_data['data']['details'] += f'\n{update.message.text}'
-    else:
-        context.user_data['data']['details'] = update.message.text
-    return ask_before_send(update, context)
 
 
 def end_conversation(update, context):
