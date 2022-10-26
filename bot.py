@@ -4,7 +4,7 @@ import problems
 import issues
 from telegram.ext import (CallbackQueryHandler, CommandHandler, ConversationHandler, MessageHandler, 
     Filters, Updater)
-from handlers import admin, greet_user, talk_to_me
+from handlers import admin, show_feedback, greet_user, talk_to_me
 
 
 from settings import API_KEY
@@ -65,6 +65,7 @@ def main():
 
     db.add_handler(problem)
     db.add_handler(issue)
+    db.add_handler(CallbackQueryHandler(show_feedback, pattern='^' + 'admin_request'))
     db.add_handler(MessageHandler(Filters.text, talk_to_me))
     logging.info('bot has been started')
     mybot.start_polling()

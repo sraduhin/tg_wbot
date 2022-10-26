@@ -1,6 +1,6 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from utils import main_keyboard
-from db import db, get_or_create_user, get_problems
+from utils import main_keyboard, get_feedback_type
+from db import db, get_or_create_user
 
 
 def admin(update, context):
@@ -11,9 +11,15 @@ def admin(update, context):
     )
     print(user)
     if user.get('admin') is True:
-        request = get_problems(db)
+        request = db.feedbacks.find({'status_open': True})
+        request = get_feedback_type(request)
         keyboard = [
-            [InlineKeyboardButton(f"{issue['username']}\n{issue['problem'].get('problem_kind')}", callback_data='_')] for issue in request
+            [
+                InlineKeyboardButton(
+                    f"@{feedback['username']} {feedback['description']}",
+                    callback_data=f"admin_request|{feedback['_id']}"
+                )
+            ] for feedback in request
         ]
         context.bot.send_message(
             chat_id=update.effective_chat.id,
@@ -21,6 +27,16 @@ def admin(update, context):
             reply_markup=InlineKeyboardMarkup(keyboard))
     else:
         context.bot.send_photo(chat_id=update.effective_chat.id, photo=open('images/not_admin.jpg', 'rb'))
+
+
+def show_feedback(update, context):
+    answer = update.callback_query.data
+    print(answer)
+    answer = answer.split('|')[-1]
+    print(answer)
+    feedback = db.feedbacks.find_one({"_id": answer})
+    print(feedback)
+
 
 def greet_user(update, context):
     user = get_or_create_user(

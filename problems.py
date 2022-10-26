@@ -1,4 +1,4 @@
-from db import db, get_or_create_user, save_problem
+from db import db, get_or_create_user, save_feedback
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from telegram.ext import ConversationHandler
 from utils import show_choice_and_get_answer, format_problem, main_keyboard, get_user_photo
@@ -11,7 +11,8 @@ def problem_start(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text='Печаль...',)
     context.bot.send_message(chat_id=update.effective_chat.id, text='Заполните анкету. Для сброса наберите команду /cancel',)
     context.user_data['username'] = update.message.chat.username
-    context.user_data['problem'] = {}
+    context.user_data['data'] = {}
+    context.user_data['data']['type'] = 'problem'
     keyboard = [
         [InlineKeyboardButton(f"{product['name']}. {product['wb_articul']}", callback_data=product['wb_articul'])] for product in PRODUCTS
     ]
@@ -24,7 +25,7 @@ def problem_start(update, context):
 def product_type(update, context):
     print('product_type')
     # remove_product_keyboard(update, context)
-    context.user_data['problem']['product_type'] = show_choice_and_get_answer(update, context)
+    context.user_data['data']['product_type'] = show_choice_and_get_answer(update, context)
     keyboard = [
         [InlineKeyboardButton('Товар с браком', callback_data='Товар с браком')],
         [InlineKeyboardButton('Товар не соответствует заказу', callback_data='Товар не соответствует заказу')],
@@ -63,29 +64,29 @@ def get_articul_example(update, context):
 
 def problem_type(update, context):
     print('problem_type')
-    context.user_data['problem']['problem_kind'] = show_choice_and_get_answer(update, context)
+    context.user_data['data']['problem_kind'] = show_choice_and_get_answer(update, context)
     context.bot.send_message(chat_id=update.effective_chat.id, text='Вы можете описать проблему подробнее, приложить фото, либо пропустить этот шаг, нажав /skip')
     return 'get_description'
 
 
 def get_photo(update, context):
     print('get_photo')
-    if 'photo' not in context.user_data['problem']:
-        context.user_data['problem']['photos'] = []
-    context.user_data['problem']['photos'].append(
+    if 'photo' not in context.user_data['data']:
+        context.user_data['data']['photos'] = []
+    context.user_data['data']['photos'].append(
         get_user_photo(update, context)
     )
     print(update)
-    if context.user_data['problem'].get('details'):
-        context.user_data['problem']['details'] += f'\n{update.message.caption}'
+    if context.user_data['data'].get('details'):
+        context.user_data['data']['details'] += f'\n{update.message.caption}'
     else:
-        context.user_data['problem']['details'] = update.message.caption
+        context.user_data['data']['details'] = update.message.caption
     ask_before_send(update, context)
     return 'get_description'
 
 
 def ask_before_send(update, context):
-    problem_content = format_problem(context.user_data['problem'])
+    problem_content = format_problem(context.user_data['data'])
     keyboard = [
         [InlineKeyboardButton('Отправить', callback_data='SEND_CONVERSATION')]
     ]
@@ -97,18 +98,18 @@ def ask_before_send(update, context):
 
 def get_description(update, context):
     print('get_description')
-    print(context.user_data['problem'])
-    if context.user_data['problem'].get('details'):
-        context.user_data['problem']['details'] += f'\n{update.message.text}'
+    print(context.user_data['data'])
+    if context.user_data['data'].get('details'):
+        context.user_data['data']['details'] += f'\n{update.message.text}'
     else:
-        context.user_data['problem']['details'] = update.message.text
+        context.user_data['data']['details'] = update.message.text
     return ask_before_send(update, context)
 
 
 def skip_details(update, context):
     print('skip_details')
     user = get_or_create_user(db, update.effective_user, update.message.chat.id)
-    save_problem(db, user['user_id'], context.user_data['problem'])
+    save_feedback(db, user['user_id'], context.user_data['data'])
     context.bot.send_message(chat_id=update.effective_chat.id, text='Спасибо, за ваше обращение!',
                              reply_markup=main_keyboard())
     return ConversationHandler.END
@@ -122,7 +123,7 @@ def end_conversation(update, context):
         db, update.effective_user,
         update.callback_query.message.chat.id
     )
-    save_problem(db, user['user_id'], context.user_data['problem'])
+    save_feedback(db, user['user_id'], context.user_data['data'])
     context.bot.send_message(chat_id=update.effective_chat.id, text='Спасибо, за ваше обращение!',
                              reply_markup=main_keyboard())
     return ConversationHandler.END

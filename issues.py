@@ -1,4 +1,4 @@
-from db import db, get_or_create_user, save_problem
+from db import db, get_or_create_user, save_feedback
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from telegram.ext import ConversationHandler
 from utils import get_user_photo, format_issue, main_keyboard
@@ -8,12 +8,14 @@ def issue_start(update, context):
     print('issue_start')
     user = get_or_create_user(db, update.effective_user, update.message.chat.id)
     context.user_data['username'] = update.message.chat.username
-    context.user_data['issue'] = {}
+    context.user_data['data'] = {}
     user_issue = update.message.text
     if user_issue == 'Благодарность!':
+        context.user_data['data']['type'] = 'respect'
         context.bot.send_message(chat_id=update.effective_chat.id, text='У вас есть лестные отзывы?')
         context.bot.send_message(chat_id=update.effective_chat.id, text='Их любим мы.)')
     else:
+        context.user_data['data']['type'] = 'other'
         chat_id = update.effective_chat.id
         articul_pic_filename = 'images/epifanzev.png'
         context.bot.send_photo(
@@ -25,16 +27,16 @@ def issue_start(update, context):
 
 def get_photo(update, context):
     print('get_photo')
-    if 'photo' not in context.user_data['issue']:
-        context.user_data['issue']['photos'] = []
-    context.user_data['issue']['photos'].append(
+    if 'photo' not in context.user_data['data']:
+        context.user_data['data']['photos'] = []
+    context.user_data['data']['photos'].append(
         get_user_photo(update, context)
     )
     print(update)
-    if context.user_data['issue'].get('details'):
-        context.user_data['issue']['details'] += f'\n{update.message.caption}'
+    if context.user_data['data'].get('details'):
+        context.user_data['data']['details'] += f'\n{update.message.caption}'
     else:
-        context.user_data['issue']['details'] = update.message.caption
+        context.user_data['data']['details'] = update.message.caption
     ask_before_send(update, context)
     return 'get_description'
 
@@ -52,11 +54,11 @@ def ask_before_send(update, context):
 
 def get_description(update, context):
     print('get_description')
-    print(context.user_data['issue'])
-    if context.user_data['issue'].get('details'):
-        context.user_data['issue']['details'] += f'\n{update.message.text}'
+    print(context.user_data['data'])
+    if context.user_data['data'].get('details'):
+        context.user_data['data']['details'] += f'\n{update.message.text}'
     else:
-        context.user_data['issue']['details'] = update.message.text
+        context.user_data['data']['details'] = update.message.text
     return ask_before_send(update, context)
 
 
@@ -68,7 +70,7 @@ def end_conversation(update, context):
         db, update.effective_user,
         update.callback_query.message.chat.id
     )
-    save_problem(db, user['user_id'], context.user_data['issue'])
+    save_feedback(db, user['user_id'], context.user_data['data'])
     context.bot.send_message(chat_id=update.effective_chat.id, text='Спасибо, за за обратную связь!',
                              reply_markup=main_keyboard())
     return ConversationHandler.END

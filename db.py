@@ -29,22 +29,18 @@ def get_or_create_user(db, effective_user, chat_id):
     return user
 
 
-def get_problems(db):
-    result = db.problems.find( {'status_open': True } )
-    return result
-
-
-def save_problem(db, user_id, problem_data):
+def save_feedback(db, user_id, feedback_data):
     user = db.users.find_one({"user_id": user_id})
-    problem = {
+    feedback = {
         'user_id': user_id,
+        'created': datetime.now(),
         'username': user['username'],
-        'problem': problem_data,
+        'feedback': feedback_data,
         'status_open': True
     }
-    db.problems.insert_one(problem)
+    db.feedbacks.insert_one(feedback)
 
-'''def save_problem(db, user_id, problem_data):
+'''def save_feedback(db, user_id, problem_data):
     user = db.users.find_one({"user_id": user_id})
     problem_data['created'] = datetime.now()
     problem_data['status'] = 'open'

@@ -59,10 +59,10 @@ def format_problem(problem):
 def format_issue(issue):
     print('format_issue')
     issue_content = f"""<b>Имя</b>: {issue['username']}"""
-    if 'details' in issue['issue']:
-        issue_content += f"\n<b>Комментарий</b>: {issue['issue']['details']}"
-    if 'photos' in issue['issue']:
-        issue_content += f"\nТак же есть {get_photos_count(issue['issue'])} фото"
+    if 'details' in issue['data']:
+        issue_content += f"\n<b>Комментарий</b>: {issue['data']['details']}"
+    if 'photos' in issue['data']:
+        issue_content += f"\nТак же есть {get_photos_count(issue['data'])} фото"
     return issue_content
 
 
@@ -74,3 +74,18 @@ def get_user_photo(update, context):
     photo_file.download(file_name)
     update.message.reply_text('Фото сохранено')
     return file_name
+
+
+def get_feedback_type(request_result):
+    result = []
+    for fdbck in request_result:
+        print(fdbck['feedback'])
+        if fdbck.get('feedback'):
+            result.append(
+                {
+                    '_id': fdbck['_id'],
+                    'username': fdbck['username'],
+                    'description': fdbck['feedback'].get('problem_kind') or fdbck['feedback'].get('type')
+                }
+            )
+    return result
