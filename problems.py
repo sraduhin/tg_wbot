@@ -1,13 +1,13 @@
 from db import db, get_or_create_user, save_feedback
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from telegram.ext import ConversationHandler
-from utils import show_choice_and_get_answer, format_problem, main_keyboard, get_user_photo
+from utils import show_choice_and_get_answer, format_issue, main_keyboard, get_user_photo
 from products import PRODUCTS
 
 
 def problem_start(update, context):
     print('problem_start')
-    user = get_or_create_user(db, update.effective_user, update.message.chat.id)
+    get_or_create_user(db, update.effective_user, update.message.chat.id)
     context.bot.send_message(chat_id=update.effective_chat.id, text='Печаль...',)
     context.bot.send_message(chat_id=update.effective_chat.id, text='Заполните анкету. Для сброса наберите команду /cancel',)
     context.user_data['username'] = update.message.chat.username
@@ -66,6 +66,13 @@ def problem_type(update, context):
     print('problem_type')
     context.user_data['data']['problem_kind'] = show_choice_and_get_answer(update, context)
     context.bot.send_message(chat_id=update.effective_chat.id, text='Вы можете описать проблему подробнее, приложить фото, либо пропустить этот шаг, нажав /skip')
+
+    if not context.user_data.get('username'):
+        warning = """Мы заметили, что у вас не указано имя пользователя в настройках телеграмм.
+Возможно, для решения проблемы нам потребуется связаться с вами для уточнения деталей.
+Рекомендуем оставить в описании любой удобный способ связи, либо приложить фото с qr.
+Спасибо!"""
+        context.bot.send_message(chat_id=update.effective_chat.id, text=warning)
     return 'get_description'
 
 
@@ -87,17 +94,14 @@ def get_photo(update, context):
 
 
 def ask_before_send(update, context):
-    problem_content = format_problem(context.user_data['data'])
+    print('ask_before_send')
+    problem_content = format_issue(context.user_data)
     keyboard = [
         [InlineKeyboardButton('Отправить', callback_data='SEND_CONVERSATION')]
     ]
     context.bot.send_message(chat_id=update.effective_chat.id, text=problem_content,
                              reply_markup=InlineKeyboardMarkup(keyboard), 
                              parse_mode=ParseMode.HTML)
-    if not context.user_data.get('username'):
-        warning = """Мы заметили, что у вас не указано имя пользователя в настройках телеграмм.
-Возможно, для решения проблемы нам потребуется связаться с вами для уточнения деталей. Вы можете оставить добавить к описанию ваш контактный номер, либо приложить фото с qr. Спасибо!"""
-        context.bot.send_message(chat_id=update.effective_chat.id, text=warning)
     return 'get_description'
 
 

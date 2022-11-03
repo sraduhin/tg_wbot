@@ -6,7 +6,7 @@ from utils import format_issue, main_keyboard
 
 def issue_start(update, context):
     print('issue_start')
-    user = get_or_create_user(db, update.effective_user, update.message.chat.id)
+    get_or_create_user(db, update.effective_user, update.message.chat.id)
     context.user_data['username'] = update.message.chat.username
     context.user_data['data'] = {}
     user_issue = update.message.text
@@ -34,6 +34,16 @@ def ask_before_send(update, context):
                              reply_markup=InlineKeyboardMarkup(keyboard), 
                              parse_mode=ParseMode.HTML)
     return 'get_description'
+
+
+def get_description(update, context):
+    print('get_description')
+    print(context.user_data['data'])
+    if context.user_data['data'].get('details'):
+        context.user_data['data']['details'] += f'\n{update.message.text}'
+    else:
+        context.user_data['data']['details'] = update.message.text
+    return ask_before_send(update, context)
 
 
 def end_conversation(update, context):

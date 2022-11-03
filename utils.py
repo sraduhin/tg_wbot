@@ -19,12 +19,14 @@ def submit_inline_keyboard():
     ]
     return InlineKeyboardMarkup(keyboard)
 
+
 def save_message_id(update, context):
     print('save_message_id')
     update.callback_query.answer()
     message_id = update.callback_query.message.message_id
     return message_id
-    
+
+
 def show_choice_and_get_answer(update, context):
     print('show_choice_and_get_answer')
     print(update.callback_query.message.message_id)
@@ -43,22 +45,14 @@ def get_photos_count(data):
     return 'несколько' if len_photos > 3 else 'парочку'
 
 
-def format_problem(problem):
-    print('format_problem')
-    problem_content = f"""<b>Проблема</b>: {problem['problem_kind']}"""
-    if 'product_type' in problem:
-        problem_content = f"<b>Артикул</b>: {problem['product_type']}\n" + problem_content
-    if 'details' in problem:
-        problem_content += f"\n<b>Комментарий</b>: {problem['details']}"
-    if 'photos' in problem:
-        print(problem)
-        problem_content += f"\nТак же есть {get_photos_count(problem)} фото"
-    return problem_content
-
-
 def format_issue(issue):
-    print('format_issue')
-    issue_content = f"""<b>Имя</b>: {issue['username']}"""
+    print('format_new_issue')
+    if issue['data']['type'] == 'problem':
+        issue_content = f"""<b>Проблема</b>: {issue['data']['problem_kind']}"""
+        if 'product_type' in issue:
+            issue_content = f"<b>Артикул</b>: {issue['data']['product_type']}\n" + issue_content
+    else:
+        issue_content = f"""<b>Имя</b>: {issue['username']}"""
     if 'details' in issue['data']:
         issue_content += f"\n<b>Комментарий</b>: {issue['data']['details']}"
     if 'photos' in issue['data']:

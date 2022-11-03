@@ -36,7 +36,7 @@ def main():
             'get_description': [
                 CallbackQueryHandler(problems.end_conversation),
                 CommandHandler('skip', problems.skip_details),
-                MessageHandler(Filters.text & ~Filters.regex('^[^/]'), problems.get_description),
+                MessageHandler(Filters.text & ~Filters.regex('^[/]'), problems.get_description),
                 MessageHandler(Filters.photo, problems.get_photo)
             ]
         },
@@ -53,7 +53,7 @@ def main():
         states={
             'get_description': [
                 CallbackQueryHandler(issues.end_conversation),
-                MessageHandler(Filters.text & ~Filters.regex('^[^/]'), problems.get_description),
+                MessageHandler(Filters.text & ~Filters.regex('^[/]'), problems.get_description),
                 MessageHandler(Filters.photo, problems.get_photo)
             ]
         },
